@@ -48,19 +48,20 @@ router.put("/:id", jsonParser, (req, res) => {
 		res.status(400).send(message)
 	}
 	console.log(`Updating blog post \`${req.params.id}\``);
-	BlogPosts.update({
+	const updatePost = BlogPosts.update({
 		id: req.params.id,
 		title: req.body.title,
 		content: req.body.content,
-		author: req.body.title,
-		publishDate: req.body.publishDate || Date.now()
+		author: req.body.author,
+		publishDate: req.body.publishDate
 	});
+	res.json(updatePost)
 })
 
 router.delete("/:id", (req, res) => {
 	BlogPosts.delete(req.params.id);
 	console.log(`Deleted blog post \`${req.params.id}\``);
-	res.status(201).end()
+	res.status(204).end()
 })
 
 module.exports = router;
