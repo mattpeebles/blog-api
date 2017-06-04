@@ -1,14 +1,11 @@
 const express = require('express')
+const app = express();
 
-const bodyParser = require('body-parser')
 const router = express.Router()
-const {BlogPosts} = require("./models")
 const {Blog} = require('./monmodels')
 
-
+const bodyParser = require('body-parser')
 const jsonParser = bodyParser.json();
-
-
 
 //blog requires title, content, author name, publishDate* *optional
 
@@ -30,7 +27,7 @@ router.get('/', (req, res) => {
   		})
 });
 
-router.get('/:id', (req, res) =>{
+router.get('/:id', (req, res) => {
 	Blog
 	.findById(req.params.id)
 	.exec()
@@ -43,16 +40,16 @@ router.get('/:id', (req, res) =>{
 
 
 
-router.post('/', (req, res) => {
-	const requiredFields = ["title", "content", "author"]
-
+router.post('/', jsonParser, (req, res) => {
+	
+	const requiredFields = ["title", "content", "author"];
 	requiredFields.forEach(function(field){
 		if (!(field in req.body)){
 			const message = `Missing \`${field}\` in request body`
 			console.error(message)
 			return res.status(400).send(message);
 		}
-	})
+	});
 
 	Blog
 	 .create({
