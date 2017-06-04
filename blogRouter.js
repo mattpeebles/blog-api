@@ -3,6 +3,8 @@ const express = require('express')
 const bodyParser = require('body-parser')
 const router = express.Router()
 const {BlogPosts} = require("./models")
+const {Blog} = require('./monmodels')
+
 
 const jsonParser = bodyParser.json();
 
@@ -11,15 +13,39 @@ const jsonParser = bodyParser.json();
 //blog requires title, content, author name, publishDate* *optional
 
 
-BlogPosts.create("test", "lorem ipsum ergo sum", "Matt Peebles")
-BlogPosts.create("fizz", "lorem ipsum ergo sum", "Matt Peebles", "May 5th, 2017")
-
 router.get('/', (req, res) => {
-  res.json(BlogPosts.get());
+  Blog
+  	.find()
+  	.exec()
+  	.then(blogposts => {
+  		res.json({
+  			blogposts: blogposts.map(
+  				(blogpost)=>blogpost.apiRepr())
+  		});
+  	})
+  	.catch(
+  		err => {
+  			console.error(err)
+  			res.status(500).json({message: 'Internal server error'})
+  		})
 });
 
-router.post('/', jsonParser, (req, res) => {
+router.get('/:id', (req, res) =>{
+	Blog
+	.findById(req.params.id)
+	.exec()
+	.then(blogpost => res.json(blogpost.apiRepr()))
+	.catch(err => {
+		console.error(err);
+		res.status(500).json({message: `Internal server error`})
+	})
+})
+
+
+
+router.post('/', (req, res) => {
 	const requiredFields = ["title", "content", "author"]
+
 	requiredFields.forEach(function(field){
 		if (!(field in req.body)){
 			const message = `Missing \`${field}\` in request body`
@@ -27,8 +53,19 @@ router.post('/', jsonParser, (req, res) => {
 			return res.status(400).send(message);
 		}
 	})
-	const item = BlogPosts.create(req.body.title, req.body.content, req.body.author)
-	res.status(201).json(item)
+
+	Blog
+	 .create({
+		title: req.body.title,
+		content: req.body.content,
+		author: req.body.author
+		})
+	.then(
+		blogpost => res.status(201).json(blogpost.apiRepr()))
+	.catch(err => {
+		console.error(err)
+		res.status(500).json({message: `Internal server error`})
+		})
 })
 
 router.put("/:id", jsonParser, (req, res) => {

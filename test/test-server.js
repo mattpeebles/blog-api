@@ -28,7 +28,6 @@ describe('Blog API', function(){
 	})
 
 	it('should add blog item on POST', function(){
-		let now = Date.now()
 		const newItem = {title: "New Day", content: "lorem ipsum", author: "Matt P"}
 		return chai.request(app)
 			.post('/blog-posts')
