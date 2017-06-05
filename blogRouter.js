@@ -43,7 +43,8 @@ router.get('/:id', (req, res) => {
 router.post('/', jsonParser, (req, res) => {
 	
 	const requiredFields = ["title", "content", "author"];
-	requiredFields.forEach(function(field){
+	console.log(req.body.author)
+	requiredFields.forEach(field => {
 		if (!(field in req.body)){
 			const message = `Missing \`${field}\` in request body`
 			console.error(message)
@@ -65,37 +66,39 @@ router.post('/', jsonParser, (req, res) => {
 		})
 })
 
+
 router.put("/:id", jsonParser, (req, res) => {
-	const requiredFields = ["id", "title", "content", "author"];
-	requiredFields.forEach(function(field){
-		if (!(field in req.body)){
-			const message = `Missing \`${field}\` in request body`
-			console.error(message)
-			return res.status(400).send(message);
+	if(!(req.params.id && req.body.id && req.params.id === req.body.id)){
+		const message = (
+		  `Request path id (${req.params.id}) and request body id ` +
+		  `(${req.body.id}) must match`);
+		console.error(message);
+		res.status(400).json({message: message});
+	}
+	const toUpdate = {};
+	const updateableFields = ['title', 'content', 'author']
+
+	updateableFields.forEach(field => {
+		if (field in req.body) {
+			toUpdate[field] = req.body[field]
 		}
 	})
-	if (req.params.id !== req.body.id) {
-		const message = (
-			`Request path id (${req.params.id}) and request body id `
-			`(${req.body.id}) must match`);
-		console.error(message);
-		res.status(400).send(message)
-	}
-	console.log(`Updating blog post \`${req.params.id}\``);
-	const updatePost = BlogPosts.update({
-		id: req.params.id,
-		title: req.body.title,
-		content: req.body.content,
-		author: req.body.author,
-		publishDate: req.body.publishDate
-	});
-	res.json(updatePost)
+
+	Blog
+		.findByIdAndUpdate(req.params.id, {$set: toUpdate}, {new: true})
+		.exec()
+		.then(updatedPost => res.status(201).json(updatedPost.apiRepr()))
+		.catch(err => res.status(500).json({message: 'Internal server error'}))
 })
 
 router.delete("/:id", (req, res) => {
-	BlogPosts.delete(req.params.id);
-	console.log(`Deleted blog post \`${req.params.id}\``);
-	res.status(204).end()
+	Blog
+		.findByIdAndRemove(req.params.id)
+		.exec()
+		.then(()=> {
+			console.log(`Deleted blog post with id ${req.params.id}`)
+			res.status(204).end()
+		})
 })
 
 module.exports = router;
