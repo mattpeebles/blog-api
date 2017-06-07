@@ -4,7 +4,7 @@
   "description": "An api blog challenge for thinkful",
   "main": "index.js",
   "scripts": {
-    "start": "node server.js",
+    "start": "nodemon server.js",
     "test": "mocha ./test"
   },
   "author": "matt peebles",
